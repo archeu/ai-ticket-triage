@@ -9,7 +9,7 @@ Built with **Spring Boot 4 + Spring AI 2**. It works with any OpenAI-compatible 
 **Live demo: https://triage.ainiya.de**
 Sample results are public. Running your own emails through the AI needs an invite link to protect the API budget; message me and I'll send you one.
 
-![AI Ticket Triage screenshot](docs/screenshot-en.png)
+![AI Ticket Triage demo](docs/demo-en.gif)
 
 ## What it does
 
@@ -18,6 +18,8 @@ Sample results are public. Running your own emails through the AI needs an invit
 - Extracts the order number. Cleanup is done in code, not by the AI, so `#C5521` always becomes `C5521`
 - Writes the summary in the support agent's UI language and the reply draft in the customer's language
 - Ticket list with category and urgency filters and pagination; English and Chinese UI
+
+![AI Ticket Triage screenshot](docs/screenshot-en.png)
 
 ## How it works
 
