@@ -1,0 +1,39 @@
+# 一键启动"数据库 + 应用"：docker compose up -d --build
+# 启动前需要设置环境变量：LLM_BASE_URL、LLM_API_KEY、LLM_MODEL、POSTGRES_PASSWORD
+# 启动后访问 http://localhost:8081（默认只监听本机，对外访问请放在反向代理后面）
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: triage
+      POSTGRES_USER: triage
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请先设置 POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triage -d triage"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:?请先设置 LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY:?请先设置 LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:?请先设置 LLM_MODEL}
+      DB_URL: jdbc:postgresql://db:5432/triage
+      DB_USER: triage
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # 是否需要邀请码才能调用 AI：线上默认需要；自己本地试用可以设成 false
+      TRIAGE_INVITE_REQUIRED: ${TRIAGE_INVITE_REQUIRED:-true}
+    ports:
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8081}:8080"
+
+volumes:
+  db-data:
