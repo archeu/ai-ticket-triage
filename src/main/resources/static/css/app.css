@@ -1,0 +1,51 @@
+/* AI 工单分类助手的页面样式。颜色都定义成变量，改主题只改 :root 这一处。 */
+:root {
+  --bg: #f5f6f8; --card: #ffffff; --text: #1f2328; --muted: #667085; --border: #e4e7ec;
+  --accent: #2563eb; --accent-hover: #1d4ed8; --accent-soft: #eef2ff;
+  --high: #b42318; --high-bg: #fee4e2; --medium: #b54708; --medium-bg: #fef0c7; --low: #067647; --low-bg: #dcfae6;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+       font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+header { background: var(--card); border-bottom: 1px solid var(--border); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+main { max-width: 1080px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 18px; margin: 0; }
+h2 { font-size: 16px; margin: 0 0 12px; }
+.muted { color: var(--muted); font-size: 13px; }
+.error { color: var(--high); font-size: 13px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.banner { background: #fffaeb; border: 1px solid #fedf89; color: #93370d; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+textarea { width: 100%; min-height: 130px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; resize: vertical; }
+textarea:disabled { background: #f9fafb; }
+textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.actions, .toolbar, .pager, .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.actions { margin-top: 10px; }
+.toolbar { margin-bottom: 8px; }
+.toolbar h2 { margin: 0 auto 0 0; }
+.pager { justify-content: flex-end; margin-top: 12px; }
+button { font: inherit; font-size: 14px; border-radius: 8px; padding: 7px 14px; cursor: pointer;
+         border: 1px solid var(--accent); background: var(--accent); color: #fff; }
+button:hover { background: var(--accent-hover); }
+button:disabled { opacity: .5; cursor: default; }
+button.ghost { background: transparent; color: var(--accent); }
+button.ghost:hover:not(:disabled) { background: var(--accent-soft); }
+select { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.badge { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.cat { background: var(--accent-soft); color: var(--accent); }
+.tag { background: #f2f4f7; color: #475467; margin-right: 6px; }
+.u-HIGH { background: var(--high-bg); color: var(--high); }
+.u-MEDIUM { background: var(--medium-bg); color: var(--medium); }
+.u-LOW { background: var(--low-bg); color: var(--low); }
+.s-NEGATIVE { color: var(--high); } .s-POSITIVE { color: var(--low); } .s-NEUTRAL { color: var(--muted); }
+.result { margin-top: 14px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #fafbfc; }
+.label { font-size: 12px; color: var(--muted); margin-top: 10px; }
+.text { white-space: pre-wrap; word-break: break-word; margin: 2px 0 0; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 14px; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; }
+tr.row { cursor: pointer; }
+tr.row:hover td { background: #f8fafc; }
+tr.detail td { background: #fafbfc; }
+.empty { text-align: center; color: var(--muted); padding: 24px; }
+@media (max-width: 720px) { .hide-sm { display: none; } }

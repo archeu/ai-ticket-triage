@@ -1,7 +1,12 @@
+# 构建镜像只需要 pom.xml、Maven Wrapper 和 src/，其余都不发给 Docker
 target/
 .git/
+.github/
 .idea/
 .vscode/
 *.log
+*.md
+docs/
+eval/
 samples/
 scripts/

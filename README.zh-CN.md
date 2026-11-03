@@ -1,5 +1,7 @@
 # AI 工单分类助手
 
+[![CI](https://github.com/archeu/ai-ticket-triage/actions/workflows/ci.yml/badge.svg)](https://github.com/archeu/ai-ticket-triage/actions/workflows/ci.yml)
+
 [English](README.md) | 中文
 
 粘贴一封客户邮件，AI 返回**类别、紧急程度、客户情绪、订单号、一句话摘要和回复草稿**。一次大模型调用拿回一个 Java 对象，直接存进 PostgreSQL，并在可筛选的工单列表里显示。
@@ -9,7 +11,7 @@
 **在线演示：https://triage.ainiya.de**
 示例结果公开可看。为了保护 AI 额度，用自己的邮件调用 AI 需要邀请链接，联系我发给你。
 
-![AI 工单分类助手演示](docs/demo-zh.gif)
+![AI 工单分类助手演示](docs/images/demo-zh.gif)
 
 ## 能做什么
 
@@ -19,7 +21,7 @@
 - 摘要用客服界面的语言，回复草稿用客户邮件的语言
 - 工单列表可以按类别、紧急程度筛选，支持分页；界面中英文切换
 
-![AI 工单分类助手截图](docs/screenshot-zh.png)
+![AI 工单分类助手截图](docs/images/screenshot-zh.png)
 
 ## 怎么实现的
 
@@ -45,7 +47,7 @@ TicketAnalysis analysis = chatClient.prompt()
         .entity(TicketAnalysis.class);
 ```
 
-`Category`、`Urgency`、`Sentiment` 都是枚举，模型没法编出新的取值。
+`Category`、`Urgency`、`Sentiment` 都是枚举，模型没法编出新的取值。系统提示词是 `src/main/resources/prompts/` 里的一个文本文件，改提示词不用动 Java 代码。
 
 ## 按真实服务的标准来做
 
@@ -58,7 +60,7 @@ TicketAnalysis analysis = chatClient.prompt()
 | 密钥 | API Key 和数据库密码都从环境变量读取，不进代码仓库 |
 | 模型可替换 | 任何 OpenAI 兼容接口，公有云或私有化部署都行，换模型只改三个环境变量 |
 | 部署 | Docker 多阶段构建，容器内用非 root 用户；Docker Compose 带 PostgreSQL；应用端口只绑定本机，前面是 Caddy 和 Cloudflare |
-| 质量 | 带标注的样例邮件加回归脚本，每次改提示词都重跑；限流和邀请码次数有单元测试 |
+| 质量 | 带标注的评测邮件加回归脚本，每次改提示词都重跑。单元测试加 MockMvc 接口测试（AI 用假对象代替），覆盖邀请码、访客隔离、参数校验和限流；每次推送由 CI 自动运行 |
 
 ## 技术栈
 
@@ -88,7 +90,7 @@ docker compose up -d --build
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # http://localhost:8080，限流放宽，不需要邀请码
 ./mvnw test                                             # 用内存数据库 H2，不需要 API Key
-python3 scripts/try-analyze.py                          # 用 samples/ 里的邮件跑一遍回归
+python3 eval/run_eval.py                                # 用 eval/emails/ 里的邮件跑一遍回归
 ```
 
 ## 接口
@@ -125,15 +127,29 @@ curl -s http://localhost:8081/api/tickets \
 ## 项目结构
 
 ```
-src/main/java/com/example/triage/
-  TicketAnalyzer.java      提示词和结构化输出
-  TicketController.java    REST 接口和访客隔离
-  RateLimiter.java         按 IP 和全站限流（固定时间窗口）
-  InviteService.java       邀请码和每日次数
-  TicketCleanup.java       每小时清理过期的演示数据
-src/main/resources/static/index.html    单页界面（中英文）
-samples/                   带标注的测试邮件，文件名里是正确类别
-scripts/                   启动、评测、部署、管理邀请码
+ai-ticket-triage/
+├── src/main/java/io/github/archeu/triage/
+│   ├── ai/            TicketAnalyzer（调用大模型）、TicketAnalysis（结构化输出的目标类型）
+│   ├── config/        TriageProperties（集中的配置项）、WebMvcConfig
+│   ├── controller/    REST 接口，只收参数、返回结果，不写业务逻辑
+│   ├── dto/           请求和响应对象；数据库实体不会直接返回给前端
+│   ├── entity/        JPA 实体和枚举
+│   ├── exception/     自定义异常和全局异常处理（统一的错误格式）
+│   ├── job/           定时任务：每小时清理过期的演示数据
+│   ├── ratelimit/     限流器和限流拦截器
+│   ├── repository/    Spring Data 数据访问和查询条件
+│   └── service/       业务逻辑：工单、邀请码
+├── src/main/resources/
+│   ├── prompts/       系统提示词，改提示词不用动 Java 代码
+│   └── static/        页面：index.html、css/、js/
+├── src/test/java/     单元测试和 MockMvc 接口测试
+├── eval/              带标注的评测邮件（文件名里是正确类别）和 run_eval.py
+├── samples/           线上演示站的公开示例邮件（zh、en）
+├── scripts/           本地启动、部署、生成示例、管理邀请码
+├── docs/images/       README 用的截图和动图
+├── .github/workflows/ CI：每次推送自动编译和测试
+├── Dockerfile
+└── compose.yaml
 ```
 
 ## 关于我

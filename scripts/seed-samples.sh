@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 生成线上的公开示例（所有访客都能看到，不会被定时清理）。只能在服务器上运行。
-# 做法：用一个临时邀请码把 samples/public/{zh,en} 里的邮件提交给线上应用，标记为示例，最后停用临时邀请码。
+# 做法：用一个临时邀请码把 samples/{zh,en} 里的邮件提交给线上应用，标记为示例，最后停用临时邀请码。
 # 重新运行会用新结果替换旧示例。
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -13,7 +13,7 @@ echo "insert into invites (code, label, active, daily_limit, use_count, uses_tod
 
 i=0
 for lang in zh en; do
-  for f in samples/public/"$lang"/*.txt; do
+  for f in samples/"$lang"/*.txt; do
     i=$((i + 1))
     body=$(python3 -c 'import json,sys; print(json.dumps({"email": open(sys.argv[1], encoding="utf-8").read().strip(), "summaryLanguage": sys.argv[2]}, ensure_ascii=False))' "$f" "$lang")
     # 从服务器本机提交，每封用不同的 X-Real-IP，避开"每个 IP 每分钟 5 次"的限流

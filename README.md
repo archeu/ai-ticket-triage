@@ -1,5 +1,7 @@
 # AI Ticket Triage
 
+[![CI](https://github.com/archeu/ai-ticket-triage/actions/workflows/ci.yml/badge.svg)](https://github.com/archeu/ai-ticket-triage/actions/workflows/ci.yml)
+
 English | [中文](README.zh-CN.md)
 
 Paste a customer support email and get back its **category, urgency, sentiment, order number, a one-line summary and a reply draft**. One LLM call returns a typed Java object, which is saved to PostgreSQL and shown in a filterable ticket list.
@@ -9,7 +11,7 @@ Built with **Spring Boot 4 + Spring AI 2**. It works with any OpenAI-compatible 
 **Live demo: https://triage.ainiya.de**
 Sample results are public. Running your own emails through the AI needs an invite link to protect the API budget; message me and I'll send you one.
 
-![AI Ticket Triage demo](docs/demo-en.gif)
+![AI Ticket Triage demo](docs/images/demo-en.gif)
 
 ## What it does
 
@@ -19,7 +21,7 @@ Sample results are public. Running your own emails through the AI needs an invit
 - Writes the summary in the support agent's UI language and the reply draft in the customer's language
 - Ticket list with category and urgency filters and pagination; English and Chinese UI
 
-![AI Ticket Triage screenshot](docs/screenshot-en.png)
+![AI Ticket Triage screenshot](docs/images/screenshot-en.png)
 
 ## How it works
 
@@ -45,7 +47,7 @@ TicketAnalysis analysis = chatClient.prompt()
         .entity(TicketAnalysis.class);
 ```
 
-`Category`, `Urgency` and `Sentiment` are enums, so the model can't invent new values.
+`Category`, `Urgency` and `Sentiment` are enums, so the model can't invent new values. The system prompt is a plain text file in `src/main/resources/prompts/`, so prompt changes don't touch Java code.
 
 ## Built like a real service
 
@@ -58,7 +60,7 @@ TicketAnalysis analysis = chatClient.prompt()
 | Secrets | API keys and database passwords come from environment variables and are never in the repo |
 | Model choice | Any OpenAI-compatible endpoint, public API or self-hosted. Switching means changing three environment variables |
 | Deployment | Multi-stage Docker build, non-root container, Docker Compose with PostgreSQL. The app port is bound to localhost behind Caddy and Cloudflare |
-| Quality | Labeled sample emails and a regression script, re-run after every prompt change; unit tests for rate limits and invite limits |
+| Quality | Labeled evaluation emails and a regression script, re-run after every prompt change. Unit tests plus MockMvc integration tests (with the AI mocked) for invite codes, visitor isolation, validation and rate limits; CI runs them on every push |
 
 ## Tech stack
 
@@ -88,7 +90,7 @@ Then open http://localhost:8081.
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # http://localhost:8080, relaxed limits, no invite codes
 ./mvnw test                                             # uses in-memory H2, no API key needed
-python3 scripts/try-analyze.py                          # regression run over samples/
+python3 eval/run_eval.py                                # regression run over eval/emails/
 ```
 
 ## API
@@ -125,15 +127,29 @@ curl -s http://localhost:8081/api/tickets \
 ## Project layout
 
 ```
-src/main/java/com/example/triage/
-  TicketAnalyzer.java      prompt and structured output
-  TicketController.java    REST API and visitor isolation
-  RateLimiter.java         per-IP and global limits (fixed windows)
-  InviteService.java       invite codes with daily limits
-  TicketCleanup.java       hourly cleanup of old demo data
-src/main/resources/static/index.html    single-page UI (English and Chinese)
-samples/                   labeled test emails; the expected category is in the file name
-scripts/                   run, evaluate, deploy, manage invites
+ai-ticket-triage/
+├── src/main/java/io/github/archeu/triage/
+│   ├── ai/            TicketAnalyzer (Spring AI call), TicketAnalysis (structured output type)
+│   ├── config/        TriageProperties (typed settings), WebMvcConfig
+│   ├── controller/    REST endpoints only, no business logic
+│   ├── dto/           request and response records; entities never leave the service layer
+│   ├── entity/        JPA entities and enums
+│   ├── exception/     custom exceptions and GlobalExceptionHandler (one error format)
+│   ├── job/           hourly cleanup of old demo data
+│   ├── ratelimit/     fixed-window rate limiter and its interceptor
+│   ├── repository/    Spring Data repositories and query specifications
+│   └── service/       business logic: tickets and invite codes
+├── src/main/resources/
+│   ├── prompts/       system prompt, editable without touching Java
+│   └── static/        UI: index.html, css/, js/
+├── src/test/java/     unit tests and MockMvc integration tests
+├── eval/              labeled emails (expected category in the file name) and run_eval.py
+├── samples/           public sample emails shown on the live demo (zh, en)
+├── scripts/           run locally, deploy, seed samples, manage invites
+├── docs/images/       screenshots and GIFs for this README
+├── .github/workflows/ CI: build and test on every push
+├── Dockerfile
+└── compose.yaml
 ```
 
 ## About me

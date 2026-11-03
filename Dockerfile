@@ -13,7 +13,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 # 不用 root 运行，降低被攻破后的影响
 RUN useradd --system --uid 10001 app
-COPY --from=build /src/target/ticket-triage-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /src/target/ticket-triage.jar app.jar
 USER app
 EXPOSE 8080
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]
